@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HomeLedger — Household Budget Planner</title>
+<meta name="description" content="HomeLedger is a free, offline household budget planner: plan income and spending, check the 50/30/20 rule, set savings goals, and project a year ahead.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="logo" href="#/planner" aria-label="HomeLedger home">
+      <span class="logo-badge" aria-hidden="true">H</span>
+      <span class="logo-word">HomeLedger</span>
+      <span class="logo-sub">household budget planner</span>
+    </a>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#/planner" data-nav="planner">Planner</a>
+      <a href="#/goals" data-nav="goals">Savings goals</a>
+      <a href="#/insights" data-nav="insights">Insights</a>
+      <a href="#/presets" data-nav="presets">Presets</a>
+    </nav>
+    <div class="period-picker" role="group" aria-label="Amounts shown per">
+      <button type="button" id="btn-monthly" class="period-option is-on" aria-pressed="true">Monthly</button>
+      <button type="button" id="btn-yearly" class="period-option" aria-pressed="false">Yearly</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <div class="intro-copy">
+      <h1>Give every dollar a job.</h1>
+      <p>Sketch your household month in a few minutes: what comes in, what goes out,
+      and what is left for the things you are saving for. It all runs in this browser —
+      no account, no upload, nothing leaves your device.</p>
+      <div class="intro-links">
+        <a class="btn btn-primary" href="#/planner">Open the planner</a>
+        <a class="btn" href="#/presets">Start from a preset household</a>
+      </div>
+    </div>
+    <aside class="intro-card" aria-label="This month at a glance">
+      <p class="intro-card-kicker">This month, at a glance</p>
+      <dl class="at-glance">
+        <div><dt>Income</dt><dd id="glance-income">$0</dd></div>
+        <div><dt>Spending</dt><dd id="glance-spending">$0</dd></div>
+        <div><dt>Left over</dt><dd id="glance-leftover" class="ok">$0</dd></div>
+        <div><dt>Savings rate</dt><dd id="glance-rate">0%</dd></div>
+      </dl>
+      <p class="intro-card-note" id="glance-note">Add your income to get started.</p>
+    </aside>
+  </section>
+
+  <section class="totals-bar" aria-label="Plan totals">
+    <div class="total-cell"><span class="total-label">Monthly income</span><strong id="total-income">$0</strong></div>
+    <div class="total-cell"><span class="total-label">Monthly spending</span><strong id="total-spending">$0</strong></div>
+    <div class="total-cell"><span class="total-label">Left over</span><strong id="total-leftover" class="ok">$0</strong></div>
+    <div class="total-cell"><span class="total-label">Savings rate</span><strong id="total-rate">0%</strong></div>
+    <div class="total-cell"><span class="total-label">Biggest expense</span><strong id="total-biggest">—</strong></div>
+  </section>
+
+  <section id="view-planner" class="view">
+    <h2>Monthly planner</h2>
+    <p class="lead">Edit any name or number and the charts update right away. Amounts are
+    monthly; flip to <strong>Yearly</strong> above to see the same plan × 12.</p>
+    <div class="planner-columns">
+      <div class="panel">
+        <h3>Money coming in</h3>
+        <div id="income-rows" class="row-list"></div>
+        <button type="button" class="btn btn-small" id="add-income">+ Add an income source</button>
+      </div>
+      <div class="panel">
+        <h3>Money going out</h3>
+        <div id="expense-rows" class="row-list"></div>
+        <button type="button" class="btn btn-small" id="add-expense">+ Add an expense</button>
+        <p class="hint">Rule of thumb: keep housing near 30% of income and aim to save at least 20%.</p>
+      </div>
+      <div class="panel chart-panel">
+        <h3>Where the money goes</h3>
+        <div class="donut-holder">
+          <svg id="donut" viewBox="0 0 200 200" role="img" aria-label="Spending by category"></svg>
+          <div class="donut-centre"><span id="donut-total">$0</span><span>spent / mo</span></div>
+        </div>
+        <ul id="donut-legend" class="legend"></ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Needs, wants &amp; savings — the 50 / 30 / 20 check</h3>
+      <p class="lead">The classic split: roughly 50% of take-home pay on needs, 30% on wants,
+      20% on savings and extra debt payments. Here is how this plan measures up.</p>
+      <div id="split-bars" class="split-bars"></div>
+    </div>
+  </section>
+
+  <section id="view-goals" class="view" hidden>
+    <h2>Savings goals</h2>
+    <p class="lead">Give every saved dollar a destination. The “left over” amount below is
+    what you can spread across these goals each month.</p>
+    <p class="available-line">Available to save each month: <strong id="goals-available">$0</strong></p>
+    <div id="goal-cards" class="goal-grid"></div>
+    <form id="new-goal-form" class="panel goal-form">
+      <h3>Add a savings goal</h3>
+      <label>Goal name <input type="text" id="new-goal-name" placeholder="e.g. Emergency fund" maxlength="40" required></label>
+      <label>Target amount ($) <input type="number" id="new-goal-target" min="1" step="1" placeholder="5000" required></label>
+      <label>Already saved ($) <input type="number" id="new-goal-saved" min="0" step="1" value="0"></label>
+      <label>Monthly contribution ($) <input type="number" id="new-goal-monthly" min="0" step="1" placeholder="200"></label>
+      <button type="submit" class="btn btn-primary">Add goal</button>
+    </form>
+  </section>
+
+  <section id="view-insights" class="view" hidden>
+    <h2>Insights</h2>
+    <p class="lead">A year at a glance, drawn from your current monthly plan.</p>
+    <div class="panel">
+      <h3>Projected savings over the next 12 months</h3>
+      <svg id="projection-chart" viewBox="0 0 640 260" role="img" aria-label="Projected savings over twelve months"></svg>
+      <p class="hint" id="projection-caption"></p>
+    </div>
+    <div class="insights-columns">
+      <div class="panel">
+        <h3>Yearly totals</h3>
+        <dl class="year-figures">
+          <div><dt>Income / year</dt><dd id="year-income">$0</dd></div>
+          <div><dt>Spending / year</dt><dd id="year-spending">$0</dd></div>
+          <div><dt>Saved / year</dt><dd id="year-saved" class="ok">$0</dd></div>
+        </dl>
+      </div>
+      <div class="panel">
+        <h3>Three things worth trying</h3>
+        <ol id="suggestions" class="suggestions"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-presets" class="view" hidden>
+    <h2>Preset households</h2>
+    <p class="lead">Not sure where to start? Load a realistic example household, then change
+    any number to match your own life. Loading a preset replaces your current numbers.</p>
+    <div id="preset-cards" class="preset-grid"></div>
+  </section>
+
+  <section class="panel data-tools">
+    <h3>Your data stays on your device</h3>
+    <p>HomeLedger keeps your plan in this browser only (local storage). Nothing is sent
+    anywhere — you can save this page and open it again with no connection at all.</p>
+    <div class="tools-buttons">
+      <button type="button" class="btn" id="export-plan">Download my plan (.json)</button>
+      <button type="button" class="btn" id="reset-plan">Reset to the starter plan</button>
+    </div>
+    <p class="hint" id="tools-status" role="status"></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><strong>HomeLedger</strong> — a free, offline household budget planner. One static page;
+    no accounts, no tracking, no network requests.</p>
+    <p class="fineprint">All figures are editable examples. This site shares general budgeting
+    information, not financial advice.</p>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
